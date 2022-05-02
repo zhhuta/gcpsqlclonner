@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 
 	asset "cloud.google.com/go/asset/apiv1"
 	"google.golang.org/api/iterator"
@@ -22,7 +23,7 @@ func listSQLAssets(parent string) []Resourse {
 		log.Fatal(err)
 	}
 	defer client.Close()
-	fmt.Println("Inside of function")
+	//fmt.Println("Inside of function")
 	assetType := "sqladmin.googleapis.com/Instance"
 	req := &assetpb.ListAssetsRequest{
 		Parent: parent,
@@ -52,30 +53,32 @@ func listSQLAssets(parent string) []Resourse {
 	return sqlList
 }
 
-func writeData2File(resource []Resourse) {
-	jsonFile, err := os.Open("users.json")
-	// if we os.Open returns an error then handle it
-	if err != nil {
-		fmt.Println(err)
-	}
-	fmt.Println("Successfully Opened users.json")
-	// defer the closing of our jsonFile so that we can parse it later on
-	defer jsonFile.Close()
+func writeData2File(filename string, resource []Resourse) {
+
 	file, _ := json.MarshalIndent(resource, "", " ")
-	_ = ioutil.WriteFile("users", file, 0644)
+	_ = ioutil.WriteFile(filename, file, 0644)
 }
 
-func readData4File() []Resourse {
-	jsonFile, err := os.Open("users.json")
+func readData4File(filename string) []Resourse {
+	jsonFile, err := os.Open(filename)
 	// if we os.Open returns an error then handle it
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println("Successfully Opened users.json")
+	fmt.Printf("Successfully read from %s\n", filename)
 	// defer the closing of our jsonFile so that we can parse it later on
 	defer jsonFile.Close()
 	byteValue, _ := ioutil.ReadAll(jsonFile)
 	var res []Resourse
 	json.Unmarshal(byteValue, &res)
 	return res
+}
+
+func checkFileTimeStemp(path string) (t time.Time) {
+	file, err := os.Stat(path)
+	if err != nil {
+		fmt.Println(err)
+	}
+	//mfiletime := file.ModTime()
+	return file.ModTime()
 }
