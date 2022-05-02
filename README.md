@@ -10,6 +10,11 @@ or
 ```organizations/{org_number}```
 
 ### API endpoints
+
 ```/api/v1/csqlall``` -- get all sql instaqnces from gcp assets manager
+
 ```/api/v1/csql/{project}``` --- get all sql instances from project
+
 ```/api/v1/csql/{project}/{instance}/clone ``` --- clone instace within project 
+
+```/api/health``` --- health endpoint
