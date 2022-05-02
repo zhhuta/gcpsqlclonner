@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	//"google.golang.org/api/sqladmin/v1beta4"
@@ -15,10 +16,22 @@ type Resourse struct {
 	SQLInstance string `json:"sqlInstance"`
 }
 
+func init() {
+	//testPermisions("projects/32517729315")
+	if _, ok := os.LookupEnv("GOOGLE_APPLICATION_CREDENTIALS"); ok {
+		fmt.Println("Credentials is set")
+	} else {
+		log.Fatal("GOOGLE_APPLICATION_CREDENTIALS is Not set")
+	}
+
+	if _, ok := os.LookupEnv("GOOGLE_PARENT"); ok {
+		fmt.Println("Google Parent is set")
+	} else {
+		log.Fatal("Google Parent system variable GOOGLE_PARENT is NOt set")
+	}
+
+}
 func main() {
-	fmt.Println("Starting .....")
-	listSQLAssets("projects/32517729315")
-	fmt.Println("End of execution")
 
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/csqlall", httpGetSQLAll).Methods("GET")
@@ -30,7 +43,8 @@ func main() {
 
 func httpGetSQLAll(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	list := listSQLAssets("projects/32517729315")
+
+	list := listSQLAssets(os.Getenv("GOOGLE_PARENT"))
 	json.NewEncoder(w).Encode(list)
 }
 func httpGetProjectsSQLs(w http.ResponseWriter, r *http.Request) {
