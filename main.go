@@ -54,7 +54,7 @@ func httpGetSQLAll(w http.ResponseWriter, r *http.Request) {
 	var list []Resourse
 	if diff > lapstime {
 		list = listSQLAssets(os.Getenv("GOOGLE_PARENT"))
-		json.NewEncoder(w).Encode(list)
+		writeData2File("assets.json", list)
 	} else {
 		list = readData4File("assets.json")
 
