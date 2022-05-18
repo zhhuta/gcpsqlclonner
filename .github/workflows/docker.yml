@@ -1,0 +1,44 @@
+name: build docker image for gcpsqlcloner
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+env:
+  application_name: gcpsqlcloner
+  gcr_folder: gcpsqlcloner
+  project_folder: .
+
+jobs:
+  build-image:
+    name: Setup, Build, Publish
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ACTIONS_REPO_PAT }}
+
+      - name: Checkout actions-build-docker-image
+        uses: actions/checkout@v2
+        with:
+          repository: pcln/actions-build-docker-image
+          ref: v1
+          token: ${{ secrets.ACTIONS_REPO_PAT }}
+          path: actions-build-docker-image
+          persist-credentials: false
+
+      - name: Get application version
+        run: echo "version=$(cat ./VERSION)" >> $GITHUB_ENV
+
+      - name: Build Docker Image
+        uses: ./actions-build-docker-image
+        with:
+          gcr-folder: ${{ env.gcr_folder }}
+          project-folder: ${{ env.project_folder }}
+          application: ${{ env.application_name }}
+          rox-api-token-prod: ${{ secrets.ROX_API_TOKEN_PROD }}
+          version: ${{env.version}}
