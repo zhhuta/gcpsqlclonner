@@ -17,4 +17,6 @@ or
 
 ```/api/v1/csql/{project}/{instance}/clone ``` --- clone instace within project 
 
+#TODO add delete option
+
 ```/api/health``` --- health endpoint
