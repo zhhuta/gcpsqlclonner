@@ -45,7 +45,6 @@ func main() {
 	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
-
 	log.Fatal(http.ListenAndServe(":8080", r))
 	fmt.Println("End of execution")
 }
