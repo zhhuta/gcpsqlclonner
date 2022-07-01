@@ -41,7 +41,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/api/v1/csqlall", httpGetSQLAll).Methods("GET")
 	r.HandleFunc("/api/v1/csql/{project}", httpGetProjectsSQLs).Methods("GET")
-	r.HandleFunc("/api/v1/csql/{project}/{instance}/clone/{arbitrary_name}", httpCloneSQLInstance).Methods("POST")
+	r.HandleFunc("/api/v1/csql/{project}/{instance}/clone", httpCloneSQLInstance).Methods("POST")
 	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
@@ -78,7 +78,15 @@ func httpGetProjectsSQLs(w http.ResponseWriter, r *http.Request) {
 func httpCloneSQLInstance(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	params := mux.Vars(r)
-	clone, err := CloneSQLInstance(params["project"], params["instance"], params["arbitrary_name"])
+	values := r.URL.Query()
+	arbitrary_name := values.Get("arbitraryname")
+	fmt.Println(arbitrary_name)
+	if arbitrary_name != "" {
+		w.Write([]byte("arbitrary_name " + arbitrary_name))
+	} else {
+		w.Write([]byte("arbitrary_name <empty>"))
+	}
+	clone, err := CloneSQLInstance(params["project"], params["instance"], arbitrary_name)
 	if err != nil {
 		json.NewEncoder(w).Encode(err)
 	}
