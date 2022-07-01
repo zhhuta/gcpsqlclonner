@@ -8,7 +8,7 @@ import (
 	sqladmin "google.golang.org/api/sqladmin/v1beta4"
 )
 
-func CloneSQLInstance(project, instance string) (*sqladmin.Operation, error) {
+func CloneSQLInstance(project, instance, arbitrary_name string) (*sqladmin.Operation, error) {
 	ctx := context.Background()
 
 	sqladminService, err := sqladmin.NewService(ctx)
@@ -18,9 +18,15 @@ func CloneSQLInstance(project, instance string) (*sqladmin.Operation, error) {
 	/* clc := &sqladmin.CloneContext{
 		DestinationInstanceName: fmt.Sprintf("%s-clone", instance),
 	} */
+	var instance_name string
+	if arbitrary_name != "" {
+		instance_name = fmt.Sprintf("%s-clone-%s", instance, arbitrary_name)
+	} else {
+		instance_name = fmt.Sprintf("%s-clone-%s", instance, time.Now().Format("01-02-2006"))
+	}
 	rb := &sqladmin.InstancesCloneRequest{
 		CloneContext: &sqladmin.CloneContext{
-			DestinationInstanceName: fmt.Sprintf("%s-clone-%s", instance, time.Now().Format("01-02-2006")),
+			DestinationInstanceName: instance_name,
 		},
 	}
 
