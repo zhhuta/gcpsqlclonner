@@ -4,13 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"os"
 	"time"
 
 	"github.com/gorilla/mux"
 	//"google.golang.org/api/sqladmin/v1beta4"
+	stdlog "log"
+
+	log "github.com/go-kit/kit/log"
 )
 
 type Resourse struct {
@@ -23,13 +25,13 @@ func init() {
 	if _, ok := os.LookupEnv("GOOGLE_APPLICATION_CREDENTIALS"); ok {
 		fmt.Println("Credentials is set")
 	} else {
-		log.Fatal("GOOGLE_APPLICATION_CREDENTIALS is Not set")
+		stdlog.Fatal("GOOGLE_APPLICATION_CREDENTIALS is Not set")
 	}
 
 	if _, ok := os.LookupEnv("GOOGLE_PARENT"); ok {
 		fmt.Println("Google Parent is set")
 	} else {
-		log.Fatal("Google Parent system variable GOOGLE_PARENT is NOt set")
+		stdlog.Fatal("Google Parent system variable GOOGLE_PARENT is NOt set")
 	}
 	if _, err := os.Stat("assets.json"); errors.Is(err, os.ErrNotExist) {
 		writeData2File("assets.json", listSQLAssets(os.Getenv("GOOGLE_PARENT")))
@@ -45,7 +47,25 @@ func main() {
 	r.HandleFunc("/api/health", func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(map[string]bool{"ok": true})
 	})
-	log.Fatal(http.ListenAndServe(":8080", r))
+
+	var logger log.Logger
+	// Logfmt is a structured, key=val logging format that is easy to read and parse
+	logger = log.NewLogfmtLogger(log.NewSyncWriter(os.Stderr))
+	// Direct any attempts to use Go's log package to our structured logger
+	stdlog.SetOutput(log.NewStdlibAdapter(logger))
+	// Log the timestamp (in UTC) and the callsite (file + line number) of the logging
+	// call for debugging in the future.
+	logger = log.With(logger, "ts", log.DefaultTimestampUTC, "loc", log.DefaultCaller)
+
+	// Create an instance of our LoggingMiddleware with our configured logger
+	loggingMiddleware := LoggingMiddleware(logger)
+	loggedRouter := loggingMiddleware(r)
+
+	// Start our HTTP server
+	if err := http.ListenAndServe(":8080", loggedRouter); err != nil {
+		logger.Log("status", "fatal", "err", err)
+		os.Exit(1)
+	}
 	fmt.Println("End of execution")
 }
 
